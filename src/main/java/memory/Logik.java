@@ -1,11 +1,14 @@
 package memory;
 
+import com.sun.tools.javac.Main;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
@@ -39,10 +42,13 @@ public class Logik {
     }
 
     private HashMap<Integer, Integer> ids = new HashMap<>();
+
     private void generateCars(){
         fillIDS();
         Image karte_backside = null;
         ImageIcon temp = new ImageIcon("src/main/java/memory/bk.png");
+//        URL resource = this.getClass().getClassLoader().getResource("bk.png");
+
         Image img = temp.getImage();
         karte_backside = img.getScaledInstance((int) WINDOW_WIGHT/difficulty-40, 220,  Image.SCALE_SMOOTH);
 
@@ -59,7 +65,9 @@ public class Logik {
                 ids.replace(id, ids.get(id)-1);
 
                 Image fg_img = null;
+//                URL resource2 = this.getClass().getClassLoader().getResource(id +".png");
                 ImageIcon temp2 = new ImageIcon("src/main/java/memory/"+id+".png");
+//                ImageIcon temp2 = new ImageIcon(resource2.getFile());
                 Image img2 = temp2.getImage();
                 fg_img = img2.getScaledInstance((int) WINDOW_WIGHT/difficulty-40, 220,  Image.SCALE_SMOOTH);
 
@@ -108,7 +116,7 @@ public class Logik {
     private void checkAufgedeckteKarten(){
         if(aufgedeckteKarten.size() == 2){
             if(aufgedeckteKarten.get(0).getID() == aufgedeckteKarten.get(1).getID()) {
-                System.out.println("ok");
+                aufgedeckteKarten.clear();
             }else {
                 System.out.println("ko");
 

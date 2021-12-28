@@ -6,6 +6,7 @@ public class Start {
 
     public static void main(String[] args) {
          mf = new MainFrame();
+
     }
 
     public static MainFrame getMainFrame() {
