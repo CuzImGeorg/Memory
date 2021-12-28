@@ -5,12 +5,14 @@ import java.awt.*;
 
 public class MainFrame extends JFrame {
 
-    private final int WINDOW_HEIGHT = 1430,
-                      WINDOW_WIGHT = 1400;
+    private final int   WINDOW_HEIGHT= 1000,
+            WINDOW_WIGHT   = (int) (WINDOW_HEIGHT*1.5 + 30);
 
 
 
     private MainPanel mainPanel;
+
+
 
 
     public MainFrame(){
@@ -40,4 +42,6 @@ public class MainFrame extends JFrame {
     public int getWINDOW_WIGHT() {
         return WINDOW_WIGHT;
     }
+
+
 }
