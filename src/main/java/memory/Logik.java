@@ -24,9 +24,6 @@ public class Logik {
     private int difficulty;
     private boolean won = false;
 
-    private  Image karte_backside;
-
-
     public Logik(int WINDOW_HEIGHT, int WINDOW_WIGHT, int difficulty) {
         this.WINDOW_HEIGHT = WINDOW_HEIGHT;
         this.WINDOW_WIGHT = WINDOW_WIGHT;
@@ -51,11 +48,11 @@ public class Logik {
 
     }
 
-    private HashMap<Integer, Integer> ids = new HashMap<>();
+    private HashMap<Integer, Integer>  ids = new HashMap<>();
 
     public void generateCars(){
         fillIDS();
-        Image karte_backside = null;
+        Image karte_backside;
         ImageIcon temp = new ImageIcon("src/main/java/memory/bk.png");
 //        URL resource = this.getClass().getClassLoader().getResource("bk.png");
 
@@ -74,7 +71,7 @@ public class Logik {
                 }
                 ids.replace(id, ids.get(id)-1);
 
-                Image fg_img = null;
+                Image fg_img;
 //                URL resource2 = this.getClass().getClassLoader().getResource(id +".png");
                 ImageIcon temp2 = new ImageIcon("src/main/java/memory/"+id+".png");
 //                ImageIcon temp2 = new ImageIcon(resource2.getFile());
@@ -98,12 +95,9 @@ public class Logik {
     public void timer(){
         // start Timer noch 1 Karte kick
         ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
-        ses.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                if(won) ses.shutdownNow();
-                time++;
-            }
+        ses.scheduleAtFixedRate(() -> {
+            if(won) ses.shutdownNow();
+            time++;
         },0,1000, TimeUnit.MILLISECONDS);
     }
 
@@ -148,15 +142,12 @@ public class Logik {
                 checkIfWon();
             }else {
                 ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
-                ses.schedule(new Runnable() {
-                    @Override
-                    public void run() {
-                        aufgedeckteKarten.get(0).zudecken();
-                        aufgedeckteKarten.get(0).setAufgedeckt(false);
-                        aufgedeckteKarten.get(1).zudecken();
-                        aufgedeckteKarten.get(1).setAufgedeckt(false);
-                        aufgedeckteKarten.clear();
-                    }
+                ses.schedule(() -> {
+                    aufgedeckteKarten.get(0).zudecken();
+                    aufgedeckteKarten.get(0).setAufgedeckt(false);
+                    aufgedeckteKarten.get(1).zudecken();
+                    aufgedeckteKarten.get(1).setAufgedeckt(false);
+                    aufgedeckteKarten.clear();
                 },500, TimeUnit.MILLISECONDS);
             }
 
@@ -165,11 +156,8 @@ public class Logik {
 
     private void toggleCD(){
         ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
-        ses.schedule(new Runnable() {
-            @Override
-            public void run() {
-                cd = false;
-            }
+        ses.schedule(() -> {
+            cd = false;
         }, 550, TimeUnit.MILLISECONDS);
     }
     public void onWin(){
@@ -231,7 +219,7 @@ public class Logik {
             case 6 -> diff = "hard";
             default -> diff = "";
         }
-        FileWriter fw = null;
+        FileWriter fw;
         try {
             fw = new FileWriter("src/main/java/memory/scores_" + diff + ".txt");
             String w = "";
@@ -242,7 +230,7 @@ public class Logik {
             w += s;
             fw.write(w);
             fw.close();
-        } catch (IOException e) {}
+        } catch (IOException ignored) {}
     }
 
     public ArrayList<String> getScores() {
