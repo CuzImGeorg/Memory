@@ -1,18 +1,16 @@
 package memory;
 
-import com.sun.tools.javac.Main;
-
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
-import java.util.concurrent.Executor;
+import java.util.Scanner;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -21,7 +19,10 @@ public class Logik {
     private final int WINDOW_HEIGHT,
                       WINDOW_WIGHT;
 
+    private int time;
+
     private int difficulty;
+    private boolean won = false;
 
     private  Image karte_backside;
 
@@ -31,6 +32,7 @@ public class Logik {
         this.WINDOW_WIGHT = WINDOW_WIGHT;
         this.difficulty = difficulty;
         generateCars();
+        onWin();
     }
 
     private ArrayList<Karte> karten = new ArrayList<>();
@@ -41,9 +43,17 @@ public class Logik {
         }
     }
 
+    public void reset(){
+        karten.clear();
+        generateCars();
+        ids.clear();
+        fillIDS();
+
+    }
+
     private HashMap<Integer, Integer> ids = new HashMap<>();
 
-    private void generateCars(){
+    public void generateCars(){
         fillIDS();
         Image karte_backside = null;
         ImageIcon temp = new ImageIcon("src/main/java/memory/bk.png");
@@ -54,7 +64,7 @@ public class Logik {
 
 
 
-        System.out.println(difficulty);
+
         Random rdm = new Random();
         for (int i = 0; i < difficulty; i++) {
             for (int j = 0; j < 4; j++) {
@@ -85,8 +95,25 @@ public class Logik {
         }
     }
 
+    public void timer(){
+        // start Timer noch 1 Karte kick
+        ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
+        ses.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                if(won) ses.shutdownNow();
+                time++;
+            }
+        },0,1000, TimeUnit.MILLISECONDS);
+    }
 
+    public String getTimeAsString() {
+        return time/60 + ":" + time%60;
+    }
 
+    public int getTimeAsInt() {
+        return time;
+    }
 
     private boolean cd = false;
     public void onMouseClick(MouseEvent e) {
@@ -99,7 +126,8 @@ public class Logik {
 
         for (Karte k : karten) {
             if(x > k.getPOS_X() && x < k.getPOS_X() + k.getSIZE_X() && y > k.getPOS_Y() && y < k.getPOS_Y() + k.getSIZE_Y()) {
-                System.out.println(k.getID());
+
+                timer();
                 if(!k.isAufgedeckt()){
                     k.aufdecken();
                     k.setAufgedeckt(true);
@@ -117,9 +145,8 @@ public class Logik {
         if(aufgedeckteKarten.size() == 2){
             if(aufgedeckteKarten.get(0).getID() == aufgedeckteKarten.get(1).getID()) {
                 aufgedeckteKarten.clear();
+                checkIfWon();
             }else {
-                System.out.println("ko");
-
                 ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
                 ses.schedule(new Runnable() {
                     @Override
@@ -143,11 +170,90 @@ public class Logik {
             public void run() {
                 cd = false;
             }
-        }, 400, TimeUnit.MILLISECONDS);
+        }, 550, TimeUnit.MILLISECONDS);
+    }
+    public void onWin(){
+        System.out.println("you won");
+        won = true;
+        WinFrame f = new WinFrame(this);
+        //TODO better name input
+        String name = JOptionPane.showInputDialog("name");
+        if(name.length() > 16) name = name.substring(0,16);
+           name = name.replace(':', '?');
+
+        safeScore(difficulty,  name + ": " + getTimeAsString());
     }
 
+    public void checkIfWon(){
+        for(Karte k : karten)  {
+            if(!k.isAufgedeckt()){
+                return;
+            }
+        }
+        onWin();
+
+    }
+
+    private ArrayList<String> scores = new ArrayList<>();
+    public void loadScores(int mode) {
+        scores.clear();
+        String diff;
+        System.out.println(mode);
+        switch (mode){
+            case 4 ->  diff = "easy";
+            case 5 ->  diff = "medium";
+            case 6 -> diff = "hard";
+            default -> diff = "";
+        }
+
+        Scanner s = null;
+
+        try {
+            File file = new File("src/main/java/memory/scores_" + diff + ".txt");
+
+            s  = new Scanner(file);
+        }catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        while(s.hasNext()) {
+            String str = s.next();
+            scores.add(str);
+        }
+
+    }
+
+    public void safeScore(int mode, String s){
+        String diff;
+        System.out.println(mode);
+        switch (mode){
+            case 4 ->  diff = "easy";
+            case 5 ->  diff = "medium";
+            case 6 -> diff = "hard";
+            default -> diff = "";
+        }
+        FileWriter fw = null;
+        try {
+            fw = new FileWriter("src/main/java/memory/scores_" + diff + ".txt");
+            String w = "";
+            for(String temp: scores){
+                w += temp+ System.lineSeparator();
+
+            }
+            w += s;
+            fw.write(w);
+            fw.close();
+        } catch (IOException e) {}
+    }
+
+    public ArrayList<String> getScores() {
+        return scores;
+    }
 
     public void setDifficulty(int difficulty) {
         this.difficulty = difficulty;
+    }
+
+    public int getDifficulty() {
+        return difficulty;
     }
 }

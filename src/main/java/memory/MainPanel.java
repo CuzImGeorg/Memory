@@ -57,22 +57,21 @@ public class MainPanel extends JPanel  implements MouseListener {
 
         // Methode um die Menü Bar zu erstellen
 
-
-
-        menuBar.setBounds(0,0, 1400,30);
-
+        menuBar.setBounds(0,0, WINDOW_WIGHT-100,30);
 
         menuGame();
+        time();
         menuDifficulty();
 
     }
 
+
     public void menuDifficulty() {
         // create the Change Difficulty Menu Bar
-        JMenu difficultyMenu = new JMenu("Difficulty: " + difficulty);
-        JMenuItem diff_4 = new JMenuItem("Difficulty: 4");
-        JMenuItem diff_5 = new JMenuItem("Difficulty: 5");
-        JMenuItem diff_6 = new JMenuItem("Difficulty: 6");
+        JMenu difficultyMenu = new JMenu("Difficulty: " + "Easy");
+        JMenuItem diff_4 = new JMenuItem("Difficulty: Easy");
+        JMenuItem diff_5 = new JMenuItem("Difficulty: Medium");
+        JMenuItem diff_6 = new JMenuItem("Difficulty: Hard");
 
 
 
@@ -95,7 +94,9 @@ public class MainPanel extends JPanel  implements MouseListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 difficulty = 4;
-                difficultyMenu.setText("Difficulty: " + difficulty);
+                difficultyMenu.setText("Difficulty: " + "Easy");
+                l.setDifficulty(difficulty);
+                l.reset();
             }
         });
 
@@ -103,7 +104,9 @@ public class MainPanel extends JPanel  implements MouseListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 difficulty = 5;
-                difficultyMenu.setText("Difficulty: " + difficulty);
+                difficultyMenu.setText("Difficulty: " + "Medium");
+                l.setDifficulty(difficulty);
+                l.reset();
             }
         });
 
@@ -111,7 +114,9 @@ public class MainPanel extends JPanel  implements MouseListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 difficulty = 6;
-                difficultyMenu.setText("Difficulty: " + difficulty);
+                difficultyMenu.setText("Difficulty: " + "Hard");
+                l.setDifficulty(difficulty);
+                l.reset();
             }
         });
 
@@ -130,7 +135,7 @@ public class MainPanel extends JPanel  implements MouseListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 l.setDifficulty(difficulty);
-                //TODO REsrrt the game
+                l.reset();
             }
         });
 
@@ -139,16 +144,29 @@ public class MainPanel extends JPanel  implements MouseListener {
 
     }
 
+    //TODO Aufgedeckte Paare anzeigen / verbleibende Paare
+
+    public void time(){
+        JLabel timer = new JLabel("Timer");
+        timer.setBackground(Color.lightGray);
+        timer.setForeground(Color.WHITE);
+
+        timer.setBounds(WINDOW_WIGHT - 98, 0, 100, 30);
+        ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
+        ses.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                timer.setText( "Time: " + l.getTimeAsString());
+            }
+        }, 0 , 100, TimeUnit.MILLISECONDS);
+        add(timer);
+
+    }
+
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-
-
         l.renderCards(g);
-
-
-
-
     }
 
     public int getDifficulty() {
