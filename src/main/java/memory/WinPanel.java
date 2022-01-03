@@ -3,25 +3,41 @@ package memory;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.security.KeyPair;
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class WinPanel extends JPanel {
 
     private JPanel p2 = new JPanel();
     private final Logik l;
-    private JLabel scores = new JLabel();
+
 
     public WinPanel(Logik l){
         this.l = l;
         p2.setBounds(200,0,385,300);
+        p2.setLayout(null);
         p2.setBackground(Color.darkGray);
         p2.setBorder(new LineBorder(Color.white, 2));
 
         generateModes();
         l.loadScores(l.getDifficulty());
+        for(JLabel label : modes) {
+            if(label.getText().substring(12).equalsIgnoreCase(l.getDifficultyAsString())){
+                label.setBorder(new LineBorder(Color.WHITE, 2));
+            }
+        }
         generateScores();
+        loadScores();
+        ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
+        ses.schedule(() -> nameInput(), 100, TimeUnit.MILLISECONDS);
 
     }
 
@@ -59,7 +75,9 @@ public class WinPanel extends JPanel {
                         l.setBorder(new LineBorder(Color.black, 2));
                     }
                     mode.setBorder(new LineBorder(Color.white, 2));
+                    p2.removeAll();
                     generateScores();
+                    loadScores();
                 }
 
                 @Override
@@ -85,21 +103,98 @@ public class WinPanel extends JPanel {
             add(mode);
         }
     }
+    private ArrayList<JLabel> labels = new ArrayList<>();
     private void generateScores(){
-
-        scores.setText("");
-        scores.setBounds(200,0, 496,300);
-        scores.setBackground(Color.darkGray);
-        scores.setForeground(Color.white);
-        scores.setOpaque(true);
-
-        String text ="";
-
+        labels.clear();
+        int counter = 0;
+        int counter2 = 0;
         for (String s : l.getScores()){
-            text += s + System.lineSeparator();
+            JLabel scores = new JLabel();
+            scores = new JLabel();
+            scores.setText(s);
+            scores.setBounds(counter2*200+5,counter*15+4, 200,15);
+            scores.setBackground(Color.darkGray);
+            scores.setForeground(Color.white);
+            scores.setOpaque(true);
+            labels.add(scores);
+//            p2.add(scores);
+            if(counter2 == 1 && counter == 18) return;
+            if(counter == 18){
+                counter = 0;
+                counter2++;
+            }else {
+                counter++;
+            }
         }
-        scores.setText(text);
-        p2.add(scores);
+    }
+    private JFrame nameSystem;
+    public void nameInput(){
+
+       nameSystem  = new JFrame("YOU WON ");
+
+        nameSystem.setSize(400,200);
+        nameSystem.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        nameSystem.setLayout(null);
+        nameSystem.setLocationRelativeTo(null);
+
+
+        JPanel p = new JPanel();
+        p.setBounds(0,0,400,200);
+        p.setLayout(null);
+        p.setBackground(Color.darkGray);
+        p.setBorder(new LineBorder(Color.white, 2));
+        nameSystem.setContentPane(p);
+
+        JLabel won = new JLabel();
+        won.setBounds(10,10,400,30);
+        won.setBackground(Color.darkGray);
+        won.setForeground(Color.white);
+        won.setText("YOU HAVE WON THE GAME IN " + l.getTimeAsString()+ " Minuets " + " in " + l.getCounterZuege() + " tries");
+        p.add(won);
+
+        JLabel entername = new JLabel();
+        entername.setBounds(10,40,400,30);
+        entername.setBackground(Color.darkGray);
+        entername.setForeground(Color.white);
+        entername.setText("PLS ENTER NAME");
+        p.add(entername);
+
+        JTextArea name = new JTextArea();
+        name.setBounds(10,80,150,20);
+        name.setBackground(Color.darkGray);
+        name.setForeground(Color.white);
+        name.setBorder(new LineBorder(Color.black,2));
+        p.add(name);
+
+        JButton submit = new JButton("Submit");
+        submit.setBounds(10,110,60,40);
+        submit.setBackground(Color.green);
+        submit.setForeground(Color.black);
+        submit.setBorder(new LineBorder(Color.black,2));
+        submit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                nameSystem.dispose();
+                l.checkIfnameIsValidAndSafeScore(name.getText());
+            }
+        });
+        p.add(submit);
+
+
+
+        nameSystem.setVisible(true);
+    }
+
+
+    private void loadScores(){
+        for(JLabel l: labels) {
+            p2.add(l);
+        }
+        updateUI();
+    }
+
+    public JFrame getNameSystem() {
+        return nameSystem;
     }
 
     public JPanel getP2() {

@@ -7,10 +7,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -24,12 +21,17 @@ public class Logik {
     private int difficulty;
     private boolean won = false;
 
+    private int counterZuege = 0;
+
+
+    private int aufgedeckteKartenPaare = 0;
+
     public Logik(int WINDOW_HEIGHT, int WINDOW_WIGHT, int difficulty) {
         this.WINDOW_HEIGHT = WINDOW_HEIGHT;
         this.WINDOW_WIGHT = WINDOW_WIGHT;
         this.difficulty = difficulty;
         generateCars();
-        onWin();
+//        onWin();
     }
 
     private ArrayList<Karte> karten = new ArrayList<>();
@@ -41,6 +43,15 @@ public class Logik {
     }
 
     public void reset(){
+        aufgedeckteKartenPaare = 0;
+        counterZuege = 0;
+        Start.getMainFrame().getMainPanel().updateCounterCards();
+        Start.getMainFrame().getMainPanel().updateCounterZuege();
+        try {
+            winFrame.dispose();
+            winFrame.getWinPanel().getNameSystem().dispose();
+        } catch (NullPointerException ignored){}
+
         karten.clear();
         generateCars();
         ids.clear();
@@ -93,7 +104,7 @@ public class Logik {
     }
 
     public void timer(){
-        // start Timer noch 1 Karte kick
+        if(time > 0) return;
         ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
         ses.scheduleAtFixedRate(() -> {
             if(won) ses.shutdownNow();
@@ -139,7 +150,11 @@ public class Logik {
         if(aufgedeckteKarten.size() == 2){
             if(aufgedeckteKarten.get(0).getID() == aufgedeckteKarten.get(1).getID()) {
                 aufgedeckteKarten.clear();
+                aufgedeckteKartenPaare++;
+                Start.getMainFrame().getMainPanel().updateCounterCards();
                 checkIfWon();
+                counterZuege++;
+                Start.getMainFrame().getMainPanel().updateCounterZuege();
             }else {
                 ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
                 ses.schedule(() -> {
@@ -148,6 +163,8 @@ public class Logik {
                     aufgedeckteKarten.get(1).zudecken();
                     aufgedeckteKarten.get(1).setAufgedeckt(false);
                     aufgedeckteKarten.clear();
+                    counterZuege++;
+                    Start.getMainFrame().getMainPanel().updateCounterZuege();
                 },500, TimeUnit.MILLISECONDS);
             }
 
@@ -160,16 +177,21 @@ public class Logik {
             cd = false;
         }, 550, TimeUnit.MILLISECONDS);
     }
+    private WinFrame winFrame;
     public void onWin(){
-        System.out.println("you won");
         won = true;
-        WinFrame f = new WinFrame(this);
-        //TODO better name input
-        String name = JOptionPane.showInputDialog("name");
+        winFrame = new WinFrame(this);
+    }
+    public void checkIfnameIsValidAndSafeScore(String playername){
+        String name = "";
+        if( playername!= null)name = playername;
+        if(name.length() == 0) name = "Anonymous";
+        String t1 = name.substring(0,1).toUpperCase(Locale.ROOT);
+        name = t1 + name.substring(1);
         if(name.length() > 16) name = name.substring(0,16);
-           name = name.replace(':', '?');
+        name = name.replace(':', '?');
 
-        safeScore(difficulty,  name + ": " + getTimeAsString());
+        safeScore(difficulty,  getTimeAsString() + ":" + name);
     }
 
     public void checkIfWon(){
@@ -184,15 +206,17 @@ public class Logik {
 
     private ArrayList<String> scores = new ArrayList<>();
     public void loadScores(int mode) {
+
         scores.clear();
         String diff;
-        System.out.println(mode);
+
         switch (mode){
             case 4 ->  diff = "easy";
             case 5 ->  diff = "medium";
             case 6 -> diff = "hard";
             default -> diff = "";
         }
+
 
         Scanner s = null;
 
@@ -209,10 +233,9 @@ public class Logik {
         }
 
     }
-
     public void safeScore(int mode, String s){
+        Collections.sort(scores);
         String diff;
-        System.out.println(mode);
         switch (mode){
             case 4 ->  diff = "easy";
             case 5 ->  diff = "medium";
@@ -230,9 +253,33 @@ public class Logik {
             w += s;
             fw.write(w);
             fw.close();
+
         } catch (IOException ignored) {}
     }
+    private ArrayList<String> toSort = new ArrayList<>();
+    public void sortScores(String diff){
+        Scanner s = null;
+        try {
+            File file = new File("src/main/java/memory/scores_" + diff + ".txt");
+            s  = new Scanner(file);
+        }catch (FileNotFoundException ignored) { }
+        while(s.hasNext()) {
+            String str = s.next();
+            toSort.add(str);
+        }
+        Collections.sort(toSort);
+        FileWriter fw;
+        try {
+            fw = new FileWriter("src/main/java/memory/scores_" + diff + ".txt");
+            String w = "";
+            for(String temp: toSort){
+                w += temp+ System.lineSeparator();
 
+            }
+            fw.write(w);
+            fw.close();
+        } catch (IOException ignored) {}
+    }
     public ArrayList<String> getScores() {
         return scores;
     }
@@ -243,5 +290,26 @@ public class Logik {
 
     public int getDifficulty() {
         return difficulty;
+    }
+
+    public String getDifficultyAsString() {
+        String diff;
+        switch (difficulty){
+            case 4 ->  diff = "easy";
+            case 5 ->  diff = "medium";
+            case 6 -> diff = "hard";
+            default -> diff = "";
+        }
+        return diff;
+    }
+
+    public int getCounterZuege() {
+        return counterZuege;
+    }
+
+
+
+    public int getAufgedeckteKartenPaare() {
+        return aufgedeckteKartenPaare;
     }
 }

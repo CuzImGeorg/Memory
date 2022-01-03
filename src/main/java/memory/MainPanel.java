@@ -35,6 +35,8 @@ public class MainPanel extends JPanel  implements MouseListener {
 
         addMouseListener(this);
         createMenuBar();
+        counterCards();
+        counterZuege();
         add(menuBar);
         updateFrame();
     }
@@ -51,24 +53,49 @@ public class MainPanel extends JPanel  implements MouseListener {
 
 
     private void createMenuBar(){
-        menuBar.setBackground(Color.gray);
-
-        //TODO MENü Bar fertig mochen
-
-        // Methode um die Menü Bar zu erstellen
-
-        menuBar.setBounds(0,0, WINDOW_WIGHT-100,30);
+        menuBar.setBackground(Color.darkGray);
+        menuBar.setBounds(0,0, 150,30);
 
         menuGame();
         time();
         menuDifficulty();
 
     }
+    JLabel cKard = new JLabel();
+    public void counterCards() {
 
+        cKard = new JLabel();
+        cKard.setText("Aufgedeckte Kartenpaare  " + l.getAufgedeckteKartenPaare() + "/" + 4*l.getDifficulty()/2);
+        cKard.setBounds(1200,0,300,30);
+        cKard.setBackground(Color.darkGray);
+        cKard.setForeground(Color.white);
+        cKard.setOpaque(true);
+        add(cKard);
+
+    }
+
+    public void updateCounterCards() {
+        cKard.setText("Aufgedeckte Kartenpaare  " + l.getAufgedeckteKartenPaare() + "/" + 4*l.getDifficulty()/2);
+    }
+    JLabel counterZuege = new JLabel();
+    public void counterZuege(){
+
+        counterZuege = new JLabel();
+        counterZuege.setText("Zuege: " + String.valueOf(l.getCounterZuege()));
+        counterZuege.setBounds(1100,0,100,30);
+        counterZuege.setBackground(Color.darkGray);
+        counterZuege.setForeground(Color.white);
+        counterZuege.setOpaque(true);
+        add(counterZuege);
+    }
+    public void updateCounterZuege() {
+        counterZuege.setText("Zuege: " + String.valueOf(l.getCounterZuege()));
+    }
 
     public void menuDifficulty() {
         // create the Change Difficulty Menu Bar
         JMenu difficultyMenu = new JMenu("Difficulty: " + "Easy");
+        difficultyMenu.setForeground(Color.white);
         JMenuItem diff_4 = new JMenuItem("Difficulty: Easy");
         JMenuItem diff_5 = new JMenuItem("Difficulty: Medium");
         JMenuItem diff_6 = new JMenuItem("Difficulty: Hard");
@@ -126,7 +153,9 @@ public class MainPanel extends JPanel  implements MouseListener {
     }
     public void menuGame(){
         JMenu menu = new JMenu("Game");
+        menu.setForeground(Color.white);
         menuBar.add(menu);
+
 
         JMenuItem menuItem_restart = new JMenuItem("Restart");
         menuItem_restart.setBackground(Color.darkGray);
@@ -139,13 +168,32 @@ public class MainPanel extends JPanel  implements MouseListener {
             }
         });
 
-        menu.add(menuItem_restart);
+        JMenuItem showScores = new JMenuItem("Scores");
+        showScores.setBackground(Color.darkGray);
+        showScores.setForeground(Color.white);
+        showScores.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                WinFrame f = new WinFrame(l);
+            }
+        });
 
+        JMenuItem exit = new JMenuItem("Exit");
+        exit.setBackground(Color.darkGray);
+        exit.setForeground(Color.white);
+        exit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Runtime.getRuntime().exit(0);
+            }
+        });
+
+
+        menu.add(showScores);
+        menu.add(menuItem_restart);
+        menu.add(exit);
 
     }
-
-    //TODO Aufgedeckte Paare anzeigen / verbleibende Paare
-
     public void time(){
         JLabel timer = new JLabel("Timer");
         timer.setBackground(Color.lightGray);

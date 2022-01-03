@@ -43,5 +43,7 @@ public class MainFrame extends JFrame {
         return WINDOW_WIGHT;
     }
 
-
+    public MainPanel getMainPanel() {
+        return mainPanel;
+    }
 }
