@@ -3,13 +3,9 @@ package memory;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.security.KeyPair;
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -19,8 +15,7 @@ public class WinPanel extends JPanel {
     private JPanel p2 = new JPanel();
     private final Logik l;
 
-
-    public WinPanel(Logik l){
+    public WinPanel(Logik l, boolean won){
         this.l = l;
         p2.setBounds(200,0,385,300);
         p2.setLayout(null);
@@ -36,31 +31,23 @@ public class WinPanel extends JPanel {
         }
         generateScores();
         loadScores();
-        ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
-        ses.schedule(() -> nameInput(), 100, TimeUnit.MILLISECONDS);
+
+        if(won) {
+            ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
+            ses.schedule(this::nameInput, 100, TimeUnit.MILLISECONDS);
+        }
 
     }
 
     private ArrayList<JLabel> modes = new ArrayList<>();
 
-
-    private void generateModes(){
+    public void generateModes(){
         setBounds(0,0, 200,340);
         setLayout(null);
         setBackground(Color.BLACK);
         modes.add(new JLabel("Difficulty: Easy"));
         modes.add(new JLabel("Difficulty: Medium"));
         modes.add(new JLabel("Difficulty: Hard"));
-
-//        JLabel mode_easy = new JLabel();
-//        mode_easy.setText("Difficulty: Easy");
-//        mode_easy.setBounds(0,0,200,100);
-//        mode_easy.setBackground(Color.DARK_GRAY);
-//        mode_easy.setForeground(Color.white);
-//        mode_easy.setBorder(new LineBorder(Color.DARK_GRAY, 2));
-//        mode_easy.setOpaque(true);
-//        add(mode_easy);
-
         for (JLabel mode : modes) {
             mode.setBounds(0,modes.indexOf(mode)*100,200,100);
             mode.setBackground(Color.DARK_GRAY);
@@ -82,42 +69,33 @@ public class WinPanel extends JPanel {
 
                 @Override
                 public void mousePressed(MouseEvent e) {
-
                 }
-
                 @Override
                 public void mouseReleased(MouseEvent e) {
-
                 }
-
                 @Override
                 public void mouseEntered(MouseEvent e) {
-
                 }
-
                 @Override
                 public void mouseExited(MouseEvent e) {
-
                 }
             });
             add(mode);
         }
     }
     private ArrayList<JLabel> labels = new ArrayList<>();
-    private void generateScores(){
+    public void generateScores(){
         labels.clear();
         int counter = 0;
         int counter2 = 0;
         for (String s : l.getScores()){
             JLabel scores = new JLabel();
-            scores = new JLabel();
             scores.setText(s);
             scores.setBounds(counter2*200+5,counter*15+4, 200,15);
             scores.setBackground(Color.darkGray);
             scores.setForeground(Color.white);
             scores.setOpaque(true);
             labels.add(scores);
-//            p2.add(scores);
             if(counter2 == 1 && counter == 18) return;
             if(counter == 18){
                 counter = 0;
@@ -132,14 +110,14 @@ public class WinPanel extends JPanel {
 
        nameSystem  = new JFrame("YOU WON ");
 
-        nameSystem.setSize(400,200);
+        nameSystem.setSize(500,200);
         nameSystem.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         nameSystem.setLayout(null);
         nameSystem.setLocationRelativeTo(null);
 
 
         JPanel p = new JPanel();
-        p.setBounds(0,0,400,200);
+        p.setBounds(0,0,500,200);
         p.setLayout(null);
         p.setBackground(Color.darkGray);
         p.setBorder(new LineBorder(Color.white, 2));
@@ -149,7 +127,7 @@ public class WinPanel extends JPanel {
         won.setBounds(10,10,400,30);
         won.setBackground(Color.darkGray);
         won.setForeground(Color.white);
-        won.setText("YOU HAVE WON THE GAME IN " + l.getTimeAsString()+ " Minuets " + " in " + l.getCounterZuege() + " tries");
+        won.setText("YOU HAVE WON THE GAME IN " + l.getTimeAsString()+ " Minuets " + " in " + l.getCounterZuege() + " tries" +" with " + l.getScore() + " Points");
         p.add(won);
 
         JLabel entername = new JLabel();
@@ -171,22 +149,15 @@ public class WinPanel extends JPanel {
         submit.setBackground(Color.green);
         submit.setForeground(Color.black);
         submit.setBorder(new LineBorder(Color.black,2));
-        submit.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                nameSystem.dispose();
-                l.checkIfnameIsValidAndSafeScore(name.getText());
-            }
+        submit.addActionListener(e -> {
+            nameSystem.dispose();
+            l.checkIfnameIsValidAndSafeScore(name.getText());
         });
         p.add(submit);
-
-
-
         nameSystem.setVisible(true);
     }
 
-
-    private void loadScores(){
+    public void loadScores(){
         for(JLabel l: labels) {
             p2.add(l);
         }

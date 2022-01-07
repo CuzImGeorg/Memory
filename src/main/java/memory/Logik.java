@@ -17,6 +17,7 @@ public class Logik {
                       WINDOW_WIGHT;
 
     private int time;
+    private int score;
 
     private int difficulty;
     private boolean won = false;
@@ -38,13 +39,15 @@ public class Logik {
 
     public void renderCards(Graphics g) {
         for(Karte k : karten){
-            g.drawImage(k.getCurrentImg(),  k.getPOS_X(), k.getPOS_Y(), null);
+          g.drawImage(k.getCurrentImg(),  k.getPOS_X(), k.getPOS_Y(), null);
         }
     }
 
     public void reset(){
         aufgedeckteKartenPaare = 0;
         counterZuege = 0;
+        score = 0;
+        Start.getMainFrame().getMainPanel().updateScore();
         Start.getMainFrame().getMainPanel().updateCounterCards();
         Start.getMainFrame().getMainPanel().updateCounterZuege();
         try {
@@ -68,7 +71,7 @@ public class Logik {
 //        URL resource = this.getClass().getClassLoader().getResource("bk.png");
 
         Image img = temp.getImage();
-        karte_backside = img.getScaledInstance((int) WINDOW_WIGHT/difficulty-40, 220,  Image.SCALE_SMOOTH);
+        karte_backside = img.getScaledInstance(WINDOW_WIGHT/difficulty-40, 220,  Image.SCALE_SMOOTH);
 
 
 
@@ -76,20 +79,17 @@ public class Logik {
         Random rdm = new Random();
         for (int i = 0; i < difficulty; i++) {
             for (int j = 0; j < 4; j++) {
-               int id = rdm.nextInt(difficulty*difficulty/2);
+               int id = rdm.nextInt(difficulty*4/2);
                 while (ids.get(id) == 0) {
-                    id = rdm.nextInt(difficulty*difficulty/2);
+                    id = rdm.nextInt(difficulty*4/2);
                 }
                 ids.replace(id, ids.get(id)-1);
-
                 Image fg_img;
-//                URL resource2 = this.getClass().getClassLoader().getResource(id +".png");
                 ImageIcon temp2 = new ImageIcon("src/main/java/memory/"+id+".png");
-//                ImageIcon temp2 = new ImageIcon(resource2.getFile());
                 Image img2 = temp2.getImage();
-                fg_img = img2.getScaledInstance((int) WINDOW_WIGHT/difficulty-40, 220,  Image.SCALE_SMOOTH);
+                fg_img = img2.getScaledInstance(WINDOW_WIGHT/difficulty-40, 220,  Image.SCALE_SMOOTH);
 
-                karten.add(new Karte(id, i*WINDOW_WIGHT/difficulty +10, j*230+40,  (int )WINDOW_WIGHT/difficulty-40, 210, fg_img, karte_backside));
+                karten.add(new Karte(id, i*WINDOW_WIGHT/difficulty +10, j*230+40,  WINDOW_WIGHT/difficulty-40, 210, fg_img, karte_backside));
 
             }
         }
@@ -98,7 +98,7 @@ public class Logik {
     }
 
     private void fillIDS(){
-        for (int i = 0; i < difficulty*difficulty/2; i++) {
+        for (int i = 0; i < difficulty*4/2; i++) {
             ids.put(i,2);
         }
     }
@@ -146,15 +146,19 @@ public class Logik {
 
     }
     private ArrayList<Karte> aufgedeckteKarten = new ArrayList<>();
+    private int combo = 1;
     private void checkAufgedeckteKarten(){
         if(aufgedeckteKarten.size() == 2){
             if(aufgedeckteKarten.get(0).getID() == aufgedeckteKarten.get(1).getID()) {
                 aufgedeckteKarten.clear();
                 aufgedeckteKartenPaare++;
                 Start.getMainFrame().getMainPanel().updateCounterCards();
-                checkIfWon();
                 counterZuege++;
+                score+=1000*combo;
+                Start.getMainFrame().getMainPanel().updateScore();
+                checkIfWon();
                 Start.getMainFrame().getMainPanel().updateCounterZuege();
+                combo++;
             }else {
                 ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
                 ses.schedule(() -> {
@@ -163,6 +167,9 @@ public class Logik {
                     aufgedeckteKarten.get(1).zudecken();
                     aufgedeckteKarten.get(1).setAufgedeckt(false);
                     aufgedeckteKarten.clear();
+                    combo = 1;
+                    score-=100;
+                    Start.getMainFrame().getMainPanel().updateScore();
                     counterZuege++;
                     Start.getMainFrame().getMainPanel().updateCounterZuege();
                 },500, TimeUnit.MILLISECONDS);
@@ -180,7 +187,7 @@ public class Logik {
     private WinFrame winFrame;
     public void onWin(){
         won = true;
-        winFrame = new WinFrame(this);
+        winFrame = new WinFrame(this, true);
     }
     public void checkIfnameIsValidAndSafeScore(String playername){
         String name = "";
@@ -191,7 +198,11 @@ public class Logik {
         if(name.length() > 16) name = name.substring(0,16);
         name = name.replace(':', '?');
 
-        safeScore(difficulty,  getTimeAsString() + ":" + name);
+        safeScore(difficulty,  getTimeAsString() + ":" + name + ":" + score );
+        loadScores(difficulty);
+        winFrame.getWinPanel().getP2().removeAll();
+        winFrame.getWinPanel().generateScores();
+        winFrame.getWinPanel().loadScores();
     }
 
     public void checkIfWon(){
@@ -248,7 +259,6 @@ public class Logik {
             String w = "";
             for(String temp: scores){
                 w += temp+ System.lineSeparator();
-
             }
             w += s;
             fw.write(w);
@@ -257,29 +267,6 @@ public class Logik {
         } catch (IOException ignored) {}
     }
     private ArrayList<String> toSort = new ArrayList<>();
-    public void sortScores(String diff){
-        Scanner s = null;
-        try {
-            File file = new File("src/main/java/memory/scores_" + diff + ".txt");
-            s  = new Scanner(file);
-        }catch (FileNotFoundException ignored) { }
-        while(s.hasNext()) {
-            String str = s.next();
-            toSort.add(str);
-        }
-        Collections.sort(toSort);
-        FileWriter fw;
-        try {
-            fw = new FileWriter("src/main/java/memory/scores_" + diff + ".txt");
-            String w = "";
-            for(String temp: toSort){
-                w += temp+ System.lineSeparator();
-
-            }
-            fw.write(w);
-            fw.close();
-        } catch (IOException ignored) {}
-    }
     public ArrayList<String> getScores() {
         return scores;
     }
@@ -307,7 +294,9 @@ public class Logik {
         return counterZuege;
     }
 
-
+    public int getScore() {
+        return score;
+    }
 
     public int getAufgedeckteKartenPaare() {
         return aufgedeckteKartenPaare;
